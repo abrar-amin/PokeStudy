@@ -44,7 +44,6 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 to-white">
-      {/* Navigation Bar with Auth */}
       <nav className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="text-xl font-bold text-purple-600">PokeStudy</div>
@@ -60,12 +59,12 @@ const Home: React.FC = () => {
             ) : user ? (
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
-                  <span className="block text-gray-700">Hello, {user.displayName || 'User'}</span>
+                  <span className="block text-gray-700">{user.displayName || 'User'}</span>
                 </div>
                 <img 
                   src={user.photoURL || 'https://via.placeholder.com/32'} 
                   alt="Profile" 
-                  className="h-8 w-8 rounded-full" // Changed from h-10 w-10 to h-8 w-8
+                  className="h-8 w-8 rounded-full" 
                 />
                 <button 
                   onClick={handleSignOut}
@@ -115,7 +114,6 @@ const Home: React.FC = () => {
       </section>
       
 
-      {/* Info Tabs Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
@@ -127,7 +125,6 @@ const Home: React.FC = () => {
             </p>
           </div>
           
-          {/* Tabs */}
           <div className="flex justify-center border-b mb-8">
             <button
               className={`px-6 py-2 font-medium ${
