@@ -19,8 +19,15 @@ export const adduser = async (userid: string, name : string) => {
         return null;
     }
     const data = await response.json();
-    const newDoc = userCollectionRef.doc(userid, {"Pokemon": data.name, "URL" : data.sprites.other.showdown.front_default, "Pomodoros" : 0, "Name" : name});
-    return await newDoc.set({"Pokemon": data.name, "URL" : data.sprites.other.showdown.front_default, "Pomodoros" : 0, "Name" : name});
+    if(data.sprites.other.showdown.front_default != null)
+    {
+      const newDoc = userCollectionRef.doc(userid, {"Pokemon": data.name, "URL" : data.sprites.other.showdown.front_default, "Pomodoros" : 0, "Name" : name});
+      return await newDoc.set({"Pokemon": data.name, "URL" : data.sprites.other.showdown.front_default, "Pomodoros" : 0, "Name" : name});
+    }
+
+    const newDoc = userCollectionRef.doc(userid, {"Pokemon": data.name, "URL" : data.sprites.front_default, "Pomodoros" : 0, "Name" : name});
+    return await newDoc.set({"Pokemon": data.name, "URL" : data.sprites.front_default, "Pomodoros" : 0, "Name" : name});
+    
 };
 
 
