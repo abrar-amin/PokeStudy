@@ -61,7 +61,6 @@ const Home: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
                   <span className="block text-gray-700">Hello, {user.displayName || 'User'}</span>
-                  <span className="block text-xs text-gray-500">{user.email}</span>
                 </div>
                 <img 
                   src={user.photoURL || 'https://via.placeholder.com/40'} 
@@ -93,7 +92,7 @@ const Home: React.FC = () => {
           <div className="flex flex-wrap items-center">
             <div className="w-full md:w-6/12 px-4 mr-auto ml-auto">
               <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-4">
-                Study Better with <span className="text-purple-600">StudyPet</span>
+                Study Better with <span className="text-purple-600">PokeStudy</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8">
                 The fun way to boost your productivity. Take care of your virtual pet by attending lectures and studying!
@@ -124,7 +123,7 @@ const Home: React.FC = () => {
               Your Study Companion
             </h2>
             <p className="text-lg text-gray-600 mt-2">
-              Discover how StudyPet can transform your study habits
+              Discover how PokeStudy can transform your study habits
             </p>
           </div>
           

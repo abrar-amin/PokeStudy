@@ -179,11 +179,13 @@
   
   .task-text {
     font-size: 1rem;
+    color: #000000;
+
   }
   
   .completed .task-text {
     text-decoration: line-through;
-    color: #6c757d;
+    color: #000000;
   }
   
   .delete-task-button {
@@ -209,4 +211,5 @@
     .timer-settings {
       grid-template-columns: 1fr;
     }
+    
   }
