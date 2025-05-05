@@ -1,4 +1,3 @@
-// src/components/Leaderboard.tsx
 import React, { useState, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 
@@ -40,7 +39,7 @@ const Leaderboard: React.FC = () => {
       }
       
       const idToken = await currentUser.getIdToken(true);
-      const response = await fetch('http://127.0.0.1:8080/api/leaderboard', {
+      const response = await fetch('http://34.42.8.134:8080/api/leaderboard', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${idToken}`,
@@ -56,7 +55,6 @@ const Leaderboard: React.FC = () => {
       const userArray: UserData[] = [];
       
       if (data && data.message === "SUCCESS" && data.data) {
-        // Define expected response structure
         interface UserDataResponse {
           Pomodoros?: number;
           Name?: string;
@@ -64,7 +62,6 @@ const Leaderboard: React.FC = () => {
           Pokemon?: string;
         }
 
-        // Type safe way to handle the entries
         Object.entries(data.data).forEach(([userId, userData]) => {
           // Type guard to ensure userData has the expected structure
           if (userData && typeof userData === 'object') {

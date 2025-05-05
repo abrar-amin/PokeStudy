@@ -97,7 +97,7 @@ const PomodoroTimer: React.FC = () => {
       const idToken = await currentUser.getIdToken(true);
       
       // API endpoint for resetting pomodoro progress
-      const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pomodoros';
+      const API_ENDPOINT = 'http://34.42.8.134::8080/api/user/pomodoros';
       
       // Send DELETE request to reset progress
       const response = await fetch(API_ENDPOINT, {
@@ -178,7 +178,7 @@ const PomodoroTimer: React.FC = () => {
     const idToken = await currentUser.getIdToken(true);
     
     // Replace with your actual API endpoint
-    const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pomodoros';
+    const API_ENDPOINT = 'http://34.42.8.134:8080/api/user/pomodoros';
     
     // Send the request
     await fetch(API_ENDPOINT, {
@@ -217,7 +217,7 @@ const PomodoroTimer: React.FC = () => {
       
       // Get the Firebase ID token
       const idToken = await currentUser.getIdToken(true);
-      const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pokemon';
+      const API_ENDPOINT = 'http://34.42.8.134:8080/api/user/pokemon';
       
       const response = await fetch(API_ENDPOINT, {
         method: 'GET',
