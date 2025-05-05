@@ -25,9 +25,22 @@ export const adduser = async (userid: string, name : string) => {
 
 
 export const updatePomodoro = async (userid: string, amount : number) => {
-    return await userCollectionRef
+    if(amount == 0)
+    {
+      //Reset
+      return await userCollectionRef
       .doc(userid)
-      .update( {Pomodoros: amount});
+      .update( {Pomodoros: 0});
+    }
+
+    else
+    {
+      
+      return await userCollectionRef
+      .doc(userid)
+      .update( {Pomodoros: (amount + (await userCollectionRef.doc(userid).get()).data().Pomodoros)});
+    }
+    
   };
 
 export const getUsers = async () => {

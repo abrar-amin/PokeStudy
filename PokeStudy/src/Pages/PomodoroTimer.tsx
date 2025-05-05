@@ -1,7 +1,7 @@
-// src/components/PomodoroTimer.tsx
 import React, { useState, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 import './PomodoroTimer.css';
+import PokemonLevelBar from './PokemonLevelBar';
 
 interface Task {
   id: number;
@@ -26,16 +26,22 @@ const PomodoroTimer: React.FC = () => {
   
   // GIF Player
   const [gifUrl, setGifUrl] = useState<string | null>(null);
+  const [pokemonName, setPokemonName] = useState<string | null>(null);
   const [isLoadingGif, setIsLoadingGif] = useState<boolean>(false);
   const [gifError, setGifError] = useState<string | null>(null);
-  
+
+  const [totalPomodoros, setTotalPomodoros] = useState<number>(0);
+
   // Firebase Auth
   const auth = getAuth();
-
 
   useEffect(() => {
     fetchRandomGif();
   }, []); 
+
+  useEffect(() => {
+    setTotalPomodoros(prev => prev + 1);
+  }, [completedPomodoros]);
 
   // Effect for timer
   useEffect(() => {
@@ -46,15 +52,15 @@ const PomodoroTimer: React.FC = () => {
         setTimeLeft(prevTimeLeft => prevTimeLeft - 1);
       }, 1000);
     } else if (isActive && timeLeft === 0) {
-      // Play notification sound
-      const audio = new Audio('/notification.mp3');
-      audio.play();
+      
       
       if (isWorkMode) {
         // Completed a work session
-        setCompletedPomodoros(prev => prev + 1);
+        if(workDuration > 0) {
+          setCompletedPomodoros(prev => prev + 1);
+          trackCompletedPomodoro(completedPomodoros + 1);
+        }
         setIsWorkMode(false);
-        trackCompletedPomodoro(completedPomodoros);
         setTimeLeft(breakDuration * 60);
       } else {
         // Completed a break session
@@ -77,6 +83,45 @@ const PomodoroTimer: React.FC = () => {
     setIsActive(false);
     setIsWorkMode(true);
     setTimeLeft(workDuration * 60);
+  };
+  
+  const resetProgress = async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        alert("You must be logged in to reset progress");
+        return;
+      }
+      
+      // Get the Firebase ID token
+      const idToken = await currentUser.getIdToken(true);
+      
+      // API endpoint for resetting pomodoro progress
+      const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pomodoros';
+      
+      // Send DELETE request to reset progress
+      const response = await fetch(API_ENDPOINT, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to reset progress: ${response.status}`);
+      }
+      
+      // Reset the local state
+      setCompletedPomodoros(0);
+      // Also reset the totalPomodoros when progress is reset
+      setTotalPomodoros(0);
+      alert("Progress has been reset successfully!");
+      
+    } catch (error) {
+      console.error('Error resetting progress:', error);
+      alert(`Failed to reset progress: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
   
   const skipSession = () => {
@@ -150,7 +195,14 @@ const PomodoroTimer: React.FC = () => {
       })
     });
   };
-
+  
+  function toTitleCase(str: string) {
+    return str.replace(
+      /\w\S*/g,
+      (text: string) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
+  }
+  
   // Function to fetch a random GIF with Firebase Auth token
   const fetchRandomGif = async () => {
     setIsLoadingGif(true);
@@ -165,7 +217,6 @@ const PomodoroTimer: React.FC = () => {
       
       // Get the Firebase ID token
       const idToken = await currentUser.getIdToken(true);
-      // Replace with your actual API endpoint
       const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pokemon';
       
       const response = await fetch(API_ENDPOINT, {
@@ -185,6 +236,8 @@ const PomodoroTimer: React.FC = () => {
       
       if (data && data.Image) {
         setGifUrl(data.Image);
+        setPokemonName(toTitleCase(data.Pokemon));
+        setTotalPomodoros(data.Pomodoros);
       } else {
         throw new Error('Invalid API response format');
       }
@@ -195,8 +248,6 @@ const PomodoroTimer: React.FC = () => {
       setIsLoadingGif(false);
     }
   };
-
-  
   
   return (
     <div className="pomodoro-container">
@@ -228,6 +279,13 @@ const PomodoroTimer: React.FC = () => {
           </button>
         </div>
         
+        <button 
+            className="reset-button"
+            onClick={resetProgress}
+          >
+            Reset Progress
+          </button>
+
         <div className="timer-settings">
           <div className="setting">
             <label>Work Duration (minutes)</label>
@@ -239,8 +297,13 @@ const PomodoroTimer: React.FC = () => {
               onChange={(e) => {
                 const value = parseInt(e.target.value, 10);
                 setWorkDuration(value);
+                
                 if (isWorkMode && !isActive) {
-                  setTimeLeft(value * 60);
+                  if(Number.isNaN(value)) {
+                    setTimeLeft(0);
+                  } else {
+                    setTimeLeft(value*60);
+                  }
                 }
               }}
             />
@@ -264,9 +327,7 @@ const PomodoroTimer: React.FC = () => {
         </div>
       </div>
       
-      {/* GIF Player Section with Firebase Auth */}
       <div className="gif-player" style={{ margin: '20px 0', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-    
         {gifError && (
           <p style={{ color: 'red', marginTop: '10px' }}>{gifError}</p>
         )}
@@ -282,7 +343,13 @@ const PomodoroTimer: React.FC = () => {
                 borderRadius: '4px'
               }} 
             />
-          
+            <h2 style={{ 
+              color: '#333', 
+              marginBottom: '0px',
+              fontWeight: 'bold',
+              fontSize: '24px'
+            }}>{pokemonName}</h2>
+            <PokemonLevelBar totalPomodoros={totalPomodoros} />
           </div>
         )}
       </div>

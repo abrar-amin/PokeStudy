@@ -6,6 +6,7 @@ interface UserData {
   id: string;
   name: string;
   pomodoros: number;
+  pokemon: string;
 }
 
 const Leaderboard: React.FC = () => {
@@ -13,6 +14,13 @@ const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
+  function toTitleCase(str: string) {
+    return str.replace(
+      /\w\S*/g,
+      (text: string) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
+    );
+  }
+
   const auth = getAuth();
   
   useEffect(() => {
@@ -53,6 +61,7 @@ const Leaderboard: React.FC = () => {
           Pomodoros?: number;
           Name?: string;
           [key: string]: unknown; 
+          Pokemon?: string;
         }
 
         // Type safe way to handle the entries
@@ -62,11 +71,12 @@ const Leaderboard: React.FC = () => {
             const typedUserData = userData as UserDataResponse;
             const pomodoros = 'Pomodoros' in typedUserData ? typedUserData.Pomodoros || 0 : 0;
             const name = 'Name' in typedUserData ? typedUserData.Name || 'Anonymous' : 'Anonymous';
-            
+            const pokemon = toTitleCase('Pokemon' in typedUserData ? typedUserData.Pokemon || 'Pikachu' : "Pikachu");
             userArray.push({
               id: userId,
               name: name,
-              pomodoros: pomodoros
+              pomodoros: pomodoros,
+              pokemon: pokemon
             });
           }
         });
@@ -82,65 +92,75 @@ const Leaderboard: React.FC = () => {
   };
   
   return (
-    <div className="leaderboard">
-      <h2 className="text-2xl font-bold mb-4">Pomodoro Leaderboard</h2>
-      
-      {isLoading && <div className="text-center my-4">Loading...</div>}
-      
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4">{error}</div>}
-      
-      {!isLoading && !error && users.length === 0 && (
-        <div className="bg-yellow-50 text-yellow-600 p-3 rounded mb-4">
-          No pomodoros completed yet.
-        </div>
-      )}
-      
-      {!isLoading && !error && users.length > 0 && (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Rank
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                  Pomodoros
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user, index) => (
-                <tr key={user.id} className={auth.currentUser?.uid === user.id ? "bg-purple-50" : ""}>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                    {user.name}
-                    {auth.currentUser?.uid === user.id && (
-                      <span className="ml-2 px-2 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
-                         (You)
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {user.pomodoros}
-                  </td>
+    <div className="flex justify-center items-center w-full px-4 py-8">
+      <div className="max-w-4xl w-full">
+        <h2 className="text-2xl font-bold mb-6 text-center">Pomodoro Leaderboard</h2>
+        
+        {isLoading && <div className="text-center my-6">Loading...</div>}
+        
+        {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-center">{error}</div>}
+        
+        {!isLoading && !error && users.length === 0 && (
+          <div className="bg-yellow-50 text-yellow-600 p-4 rounded-lg mb-6 text-center">
+            No pomodoros completed yet.
+          </div>
+        )}
+        
+        {!isLoading && !error && users.length > 0 && (
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden mb-6">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '10%' }}>
+                    Rank
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '40%' }}>
+                    Name
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '15%' }}>
+                    Level
+                  </th>
+                  <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '35%' }}>
+                    Pokemon
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {users.map((user, index) => (
+                  <tr key={user.id} className={auth.currentUser?.uid === user.id ? "bg-purple-50" : ""}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ width: '10%' }}>
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{ width: '40%' }}>
+                      {user.name}
+                      {auth.currentUser?.uid === user.id && (
+                        <span className="ml-2 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                          (You)
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ width: '15%' }}>
+                      {user.pomodoros/10}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" style={{ width: '35%' }}>
+                      {user.pokemon}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        <div className="flex justify-center">
+          <button
+            onClick={fetchLeaderboardData}
+            className="px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            Refresh
+          </button>
         </div>
-      )}
-      
-      <button
-        onClick={fetchLeaderboardData}
-        className="mt-4 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-      >
-        Refresh
-      </button>
+      </div>
     </div>
   );
 };
