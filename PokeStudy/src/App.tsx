@@ -5,10 +5,10 @@ function App() {
     return (
         <div>
         <AuthUserProvider>
-        <Home></Home>
-        </AuthUserProvider>
-         
 
+        <Home />
+
+        </AuthUserProvider>
         </div>
     );
 }

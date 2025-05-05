@@ -3,10 +3,11 @@ import withFirebaseAuth from 'react-with-firebase-auth';
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut} from "firebase/auth";
-// Our web app's Firebase configuration (example)
+import keys from "./apikey.json"
+
 const firebaseConfig = {
 
-    apiKey: "AIzaSyCoIJsze3LrCJQAOb0Kp_hlEt95LCGKyEk",
+    apiKey: keys.key,
   
     authDomain: "pokestudy-fb83e.firebaseapp.com",
   

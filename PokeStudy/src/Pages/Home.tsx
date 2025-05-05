@@ -1,13 +1,92 @@
 // src/Pages/Home.tsx
-import { useState } from 'react';
-import  PomodoroTimer from "./PomodoroTimer";
+import { useState, useEffect } from 'react';
+import PomodoroTimer from "./PomodoroTimer";
+import Leaderboard from "./Leaderboard";
+import { signInWithGoogle, signOut, auth } from '../firebase';
+import { User } from 'firebase/auth';
 
 const Home: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'Study' | 'Leaderboard' | 'features'>('Study');
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((authUser) => {
+      setUser(authUser);
+    });
+    
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error("Error signing in:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 to-white">
-     
+      {/* Navigation Bar with Auth */}
+      <nav className="bg-white shadow-md">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="text-xl font-bold text-purple-600">PokeStudy</div>
+          <div>
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <svg className="animate-spin h-5 w-5 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-sm text-gray-600">Processing...</span>
+              </div>
+            ) : user ? (
+              <div className="flex items-center space-x-4">
+                <div className="text-sm">
+                  <span className="block text-gray-700">Hello, {user.displayName || 'User'}</span>
+                  <span className="block text-xs text-gray-500">{user.email}</span>
+                </div>
+                <img 
+                  src={user.photoURL || 'https://via.placeholder.com/40'} 
+                  alt="Profile" 
+                  className="h-10 w-10 rounded-full"
+                />
+                <button 
+                  onClick={handleSignOut}
+                  className="bg-purple-100 text-purple-600 px-4 py-2 rounded hover:bg-purple-200 transition"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={handleSignIn}
+                className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+                disabled={isLoading}
+              >
+                Sign In with Google
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
       
       <section className="relative pt-16 pb-32 flex content-center items-center justify-center">
         <div className="container mx-auto px-4">
@@ -19,11 +98,18 @@ const Home: React.FC = () => {
               <p className="text-xl text-gray-600 mb-8">
                 The fun way to boost your productivity. Take care of your virtual pet by attending lectures and studying!
               </p>
+              
+              {!user && !isLoading && (
+                <button 
+                  onClick={handleSignIn}
+                  className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition"
+                >
+                  Get Started
+                </button>
+              )}
             </div>
             <div className="w-full md:w-6/12 px-4 mr-auto ml-auto">
-              <div className="relative">
-
-              </div>
+              
             </div>
           </div>
         </div>
@@ -80,54 +166,45 @@ const Home: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             {activeTab === 'Study' && (
               <div>
-                <PomodoroTimer />
+                {user ? (
+                  <PomodoroTimer />
+                ) : (
+                  <div className="text-center py-10 bg-purple-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-purple-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>                    
+                    <h3 className="text-xl font-semibold mb-2">Sign In to Study</h3>
+                    <p className="text-gray-600 mb-6">Please sign in to access the Pomodoro timer and start tracking your study sessions.</p>
+                    <button 
+                      onClick={handleSignIn}
+                      className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+                    >
+                      Sign In with Google
+                    </button>
+                  </div>
+                )}
               </div>
             )}
             
             {activeTab === 'Leaderboard' && (
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">How StudyPet Works</h3>
-                <div className="space-y-6">
-                  <div className="flex items-start">
-                    <div className="bg-purple-100 rounded-full p-3 mr-4">
-                      <span className="text-purple-600 text-xl font-bold">1</span>
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900">Create your pet</h4>
-                      <p className="text-gray-600">Choose a pet type, customize its appearance, and give it a name that motivates you.</p>
-                    </div>
+                {user ? (
+                  <Leaderboard />
+                ) : (
+                  <div className="text-center py-10 bg-purple-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-purple-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>                    
+                    <h3 className="text-xl font-semibold mb-2">Sign In to View Leaderboard</h3>
+                    <p className="text-gray-600 mb-6">Please sign in to see how you rank among other users.</p>
+                    <button 
+                      onClick={handleSignIn}
+                      className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+                    >
+                      Sign In with Google
+                    </button>
                   </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-purple-100 rounded-full p-3 mr-4">
-                      <span className="text-purple-600 text-xl font-bold">2</span>
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900">Use the Pomodoro timer</h4>
-                      <p className="text-gray-600">Start focused study sessions with our built-in Pomodoro timer. Each completed session feeds your pet and increases its intelligence.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-purple-100 rounded-full p-3 mr-4">
-                      <span className="text-purple-600 text-xl font-bold">3</span>
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900">Watch your pet grow</h4>
-                      <p className="text-gray-600">As you study regularly, your pet will gain experience, level up, and unlock new accessories and abilities.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <div className="bg-purple-100 rounded-full p-3 mr-4">
-                      <span className="text-purple-600 text-xl font-bold">4</span>
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-semibold text-gray-900">Connect with friends</h4>
-                      <p className="text-gray-600">Add friends to see their study progress, schedule study sessions together, and have virtual pet playdates.</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             )}
             

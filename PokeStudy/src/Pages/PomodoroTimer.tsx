@@ -1,5 +1,6 @@
 // src/components/PomodoroTimer.tsx
 import React, { useState, useEffect } from 'react';
+import { getAuth } from 'firebase/auth';
 import './PomodoroTimer.css';
 
 interface Task {
@@ -23,6 +24,19 @@ const PomodoroTimer: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState<string>('');
   
+  // GIF Player
+  const [gifUrl, setGifUrl] = useState<string | null>(null);
+  const [isLoadingGif, setIsLoadingGif] = useState<boolean>(false);
+  const [gifError, setGifError] = useState<string | null>(null);
+  
+  // Firebase Auth
+  const auth = getAuth();
+
+
+  useEffect(() => {
+    fetchRandomGif();
+  }, []); 
+
   // Effect for timer
   useEffect(() => {
     let interval: number | undefined;
@@ -40,6 +54,7 @@ const PomodoroTimer: React.FC = () => {
         // Completed a work session
         setCompletedPomodoros(prev => prev + 1);
         setIsWorkMode(false);
+        trackCompletedPomodoro(completedPomodoros);
         setTimeLeft(breakDuration * 60);
       } else {
         // Completed a break session
@@ -105,6 +120,83 @@ const PomodoroTimer: React.FC = () => {
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Function to track completed pomodoros to API
+  const trackCompletedPomodoro = async (count: number) => {
+    // Get the current user
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return;
+    }
+    
+    // Get the Firebase ID token
+    const idToken = await currentUser.getIdToken(true);
+    
+    // Replace with your actual API endpoint
+    const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pomodoros';
+    
+    // Send the request
+    await fetch(API_ENDPOINT, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        count: count,
+        timestamp: new Date().toISOString(),
+        duration: workDuration
+      })
+    });
+  };
+
+  // Function to fetch a random GIF with Firebase Auth token
+  const fetchRandomGif = async () => {
+    setIsLoadingGif(true);
+    setGifError(null);
+    
+    try {
+      // Check if user is authenticated
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('You must be logged in to fetch GIFs');
+      }
+      
+      // Get the Firebase ID token
+      const idToken = await currentUser.getIdToken(true);
+      // Replace with your actual API endpoint
+      const API_ENDPOINT = 'http://127.0.0.1:8080/api/user/pokemon';
+      
+      const response = await fetch(API_ENDPOINT, {
+        method: 'GET',
+        mode: 'cors', 
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.Image) {
+        setGifUrl(data.Image);
+      } else {
+        throw new Error('Invalid API response format');
+      }
+    } catch (error) {
+      console.error('Error fetching GIF:', error);
+      setGifError(`Failed to fetch GIF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoadingGif(false);
+    }
+  };
+
+  
   
   return (
     <div className="pomodoro-container">
@@ -170,6 +262,29 @@ const PomodoroTimer: React.FC = () => {
             />
           </div>
         </div>
+      </div>
+      
+      {/* GIF Player Section with Firebase Auth */}
+      <div className="gif-player" style={{ margin: '20px 0', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+    
+        {gifError && (
+          <p style={{ color: 'red', marginTop: '10px' }}>{gifError}</p>
+        )}
+        
+        {gifUrl && !isLoadingGif && (
+          <div style={{ marginTop: '15px', textAlign: 'center' }}>
+            <img 
+              src={gifUrl} 
+              alt="Random GIF" 
+              style={{ 
+                maxWidth: '100%', 
+                maxHeight: '300px',
+                borderRadius: '4px'
+              }} 
+            />
+          
+          </div>
+        )}
       </div>
       
       <div className="task-list">
