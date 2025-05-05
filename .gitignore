@@ -135,7 +135,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-.Server/node_modules
-.Server/service_account.json
-.node_modules
-.PokeStudy/src/apikey.json
+Server/node_modules
+Server/service_account.json
+node_modules
+PokeStudy/src/apikey.json
